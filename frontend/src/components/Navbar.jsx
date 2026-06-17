@@ -1,51 +1,114 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // 1. Import useAuth with curly braces
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  // 2. Destructure 'user' and 'logout' from useAuth()
-  const { user, logout } = useAuth(); 
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout(); 
-    navigate('/login');
-  };
+  const { user, logout } = useAuth();
 
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.logo}>
-        <Link to="/products" style={styles.logoLink}>AmazonClone.ae</Link>
-      </div>
-
-      <div style={styles.navLinks}>
-        <Link to="/products" style={styles.link}>Products</Link>
-        <Link to="/cart" style={styles.link}>Cart</Link>
+    <header style={styles.header}>
+      {/* Top Main Nav Bar */}
+      <div style={styles.topNav}>
         
-        {/* 3. Check 'user' instead of 'token' (since your state stores user data) */}
-        {user ? (
-          <>
-            <span style={styles.welcome}>Hello, {user.name || 'User'}</span>
-            <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" style={styles.link}>Login</Link>
-            <Link to="/register" style={styles.registerBtn}>Sign Up</Link>
-          </>
-        )}
+        {/* Left: Brand Logo */}
+        <div style={styles.leftContainer}>
+          <Link to="/products" style={styles.logo}>
+            AmazonClone<span style={styles.logoDot}>.ae</span>
+          </Link>
+        </div>
+
+        {/* Center: Expandable Spacer or future search input */}
+        <div style={styles.centerSpacer}></div>
+
+        {/* Right: Actions/Navigation items */}
+        <div style={styles.rightContainer}>
+          <Link to="/products" style={styles.navLinkItem}>
+            <span style={styles.lineOne}>Return to</span>
+            <span style={styles.lineTwo}>Products</span>
+          </Link>
+          
+          <Link to="/cart" style={styles.navLinkItem}>
+            <span style={styles.lineOne}>Shopping</span>
+            <span style={styles.lineTwo}>Cart</span>
+          </Link>
+
+          {user ? (
+            <div style={styles.navLinkItem}>
+              <span style={styles.lineOne}>Hello, {user.name || 'Anuz'}</span>
+              <button onClick={logout} style={styles.logoutAction}>Logout</button>
+            </div>
+          ) : (
+            <Link to="/login" style={styles.navLinkItem}>
+              <span style={styles.lineOne}>Hello, Sign in</span>
+              <span style={styles.lineTwo}>Account</span>
+            </Link>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }
 
-// Keep your existing styles down here...
 const styles = {
-  navbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#131921', padding: '10px 20px', color: 'white' },
-  logoLink: { color: '#ff9900', fontWeight: 'bold', textDecoration: 'none', fontSize: '20px' },
-  navLinks: { display: 'flex', alignItems: 'center', gap: '15px' },
-  link: { color: '#ffffff', textDecoration: 'none' },
-  welcome: { color: '#cccccc', fontSize: '14px' },
-  registerBtn: { color: '#131921', backgroundColor: '#f0c14b', padding: '5px 10px', borderRadius: '3px', textDecoration: 'none' },
-  logoutBtn: { background: 'none', border: 'none', color: '#ff9900', cursor: 'pointer', textDecoration: 'underline' }
+  header: {
+    width: '100%',
+    backgroundColor: '#131921',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  topNav: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 20px',
+    height: '60px',
+    width: '100%',
+  },
+  leftContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  logo: {
+    color: '#ffffff',
+    fontSize: '22px',
+    fontWeight: '700',
+    textDecoration: 'none',
+    letterSpacing: '-0.5px',
+  },
+  logoDot: {
+    color: '#febd69', /* Amazon Orange accent */
+  },
+  centerSpacer: {
+    flexGrow: 1,
+    margin: '0 20px',
+  },
+  rightContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '24px',
+  },
+  navLinkItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    color: '#ffffff',
+    textDecoration: 'none',
+    justifyContent: 'center',
+  },
+  lineOne: {
+    fontSize: '12px',
+    color: '#cccccc',
+  },
+  lineTwo: {
+    fontSize: '14px',
+    fontWeight: '700',
+  },
+  logoutAction: {
+    background: 'none',
+    border: 'none',
+    color: '#febd69',
+    fontWeight: '700',
+    fontSize: '14px',
+    cursor: 'pointer',
+    padding: 0,
+    textAlign: 'left',
+  }
 };

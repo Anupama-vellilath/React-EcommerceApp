@@ -1,114 +1,182 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Import your custom auth context
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { user } = useAuth(); // Destructure user context
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    async function loadItems() {
       try {
         const { data } = await api.get('/products');
         setProducts(data);
-        setLoading(false);
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products. Make sure your backend is running.');
-        setLoading(false);
+        console.error("Error loading products", err);
       }
-    };
-
-    fetchProducts();
+    }
+    loadItems();
   }, []);
 
   const handleAddToCart = async (product) => {
-    // 1. Force guest users to log in first
-    if (!user || !user.token) {
-      alert('Please log in to add items to your cart!');
-      navigate('/login');
-      return;
-    }
-
+    if (!user) return alert('Please sign in first');
     try {
-      // 2. Send request to backend cart database
-      await api.post(
-        '/cart', 
-        { productId: product._id, quantity: 1 },
-        { headers: { Authorization: `Bearer ${user.token}` } } // Pass user token
-      );
-      alert(`${product.name} added to cart!`);
+      await api.post('/cart', { productId: product._id, quantity: 1 }, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      alert('Product added successfully!');
     } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Could not add item to cart. Check backend setup.');
+      console.error(err);
     }
   };
 
-  if (loading) return <div style={{ padding: '20px' }}>Loading products...</div>;
-  if (error) return <div style={{ padding: '20px', color: 'red' }}>{error}</div>;
-
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h2 style={{ marginBottom: '20px' }}>Explore Our Products</h2>
-      
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-        gap: '20px' 
-      }}>
-        {products.map((product) => (
-          <div 
-            key={product._id} 
-            style={{ 
-              border: '1px solid #ddd', 
-              borderRadius: '8px', 
-              padding: '15px', 
-              textAlign: 'center',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}
-          >
-            <div>
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px' }} 
-              />
-              <h3 style={{ margin: '10px 0 5px 0', fontSize: '1.1rem', textAlign: 'left' }}>{product.name}</h3>
-              <p style={{ color: '#666', fontSize: '0.9rem', height: '40px', overflow: 'hidden', textAlign: 'left' }}>
-                {product.description}
-              </p>
-            </div>
-            
-            <div>
-              <div style={{ margin: '15px 0', fontWeight: 'bold', color: '#111', fontSize: '1.2rem', textAlign: 'left' }}>
-                {product.price} AED
+    <div style={styles.pageWrapper}>
+      {/* 1. Large Fluid Hero Image Segment */}
+
+<div style={styles.heroContainer}>
+  <img 
+    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=cover" 
+    alt="Amazon Hero Banner" 
+    style={styles.heroImage}
+  />
+  <div style={styles.heroGradient}></div>
+</div>
+
+      {/* 2. Overlapping Fluid Content Layer */}
+      <div style={styles.contentLayer}>
+        <div style={styles.gridContainer}>
+          {products.map((product) => (
+            <div key={product._id} style={styles.amazonCard}>
+              <h3 style={styles.cardTitle}>{product.name}</h3>
+              
+              <div style={styles.imageFrame}>
+                <img src={product.image} alt={product.name} style={styles.cardImg} />
               </div>
-              <button 
-                onClick={() => handleAddToCart(product)}
-                style={{
-                  backgroundColor: '#f0c14b', // Amazon Yellow
-                  color: '#111',
-                  border: '1px solid #a88734',
-                  padding: '10px 15px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  width: '100%',
-                  fontWeight: '500'
-                }}
-              >
+
+              <div style={styles.pricingRow}>
+                <span style={styles.currencyLabel}>AED</span>
+                <span style={styles.priceVal}>{product.price.toFixed(2)}</span>
+              </div>
+              
+              <p style={styles.descText}>{product.description}</p>
+
+              <button onClick={() => handleAddToCart(product)} style={styles.actionBtn}>
                 Add to Cart
               </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
+const styles = {
+  pageWrapper: {
+    width: '100%',
+    backgroundColor: '#eaeded',
+    position: 'relative',
+    minHeight: '100vh',
+  },
+  heroContainer: {
+    width: '100%',
+    position: 'relative',
+    zIndex: 1,
+    height: '450px',
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  heroGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '250px',
+    background: 'linear-gradient(to bottom, rgba(234, 237, 237, 0) 0%, rgba(234, 237, 237, 1) 100%)',
+  },
+  contentLayer: {
+    position: 'relative',
+    zIndex: 2,
+    marginTop: '-260px', /* Negative margin pulls the cards up over the image banner */
+    padding: '0 20px 40px 20px',
+    width: '100%',
+  },
+  gridContainer: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    gap: '20px',
+    width: '100%',
+  },
+  amazonCard: {
+    backgroundColor: '#ffffff',
+    padding: '20px',
+    borderRadius: '0px', /* Clean flat edges just like the official site */
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  cardTitle: {
+    fontSize: '21px',
+    fontWeight: '700',
+    color: '#0f1111',
+    margin: '0 0 12px 0',
+    letterSpacing: '-0.3px',
+  },
+  imageFrame: {
+    width: '100%',
+    height: '240px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    marginBottom: '15px',
+  },
+  cardImg: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain',
+  },
+  pricingRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    margin: '5px 0 8px 0',
+    color: '#0f1111',
+  },
+  currencyLabel: {
+    fontSize: '12px',
+    fontWeight: '600',
+    marginRight: '3px',
+  },
+  priceVal: {
+    fontSize: '24px',
+    fontWeight: '700',
+  },
+  descText: {
+    fontSize: '13px',
+    color: '#565959',
+    lineHeight: '1.4',
+    margin: '0 0 15px 0',
+    height: '38px',
+    overflow: 'hidden',
+  },
+  actionBtn: {
+    backgroundColor: '#ffd814',
+    borderColor: '#fcd200',
+    color: '#0f1111',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    padding: '9px 0',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    width: '100%',
+    fontSize: '13px',
+    fontWeight: '500',
+    boxShadow: '0 2px 5px rgba(213,217,217,.5)',
+    marginTop: 'auto', /* Keeps all actions aligned along the card baseline */
+  }
+};
