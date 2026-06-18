@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const { user } = useAuth();
+  const { addToCart } = useCart();
+  
+  // Snackbar tracking variables
+  const [snackbar, setSnackbar] = useState({ visible: false, productName: '' });
 
   useEffect(() => {
     async function loadItems() {
@@ -20,30 +25,32 @@ export default function Products() {
 
   const handleAddToCart = async (product) => {
     if (!user) return alert('Please sign in first');
-    try {
-      await api.post('/cart', { productId: product._id, quantity: 1 }, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      alert('Product added successfully!');
-    } catch (err) {
-      console.error(err);
-    }
+    
+    // Call the context layer to sync database and navigation values automatically
+    await addToCart(product._id, 1);
+    
+    // Display our polished snackbar container notification box
+    setSnackbar({ visible: true, productName: product.name });
+    
+    // Dissolve automatically after 3.5 seconds
+    setTimeout(() => {
+      setSnackbar({ visible: false, productName: '' });
+    }, 3500);
   };
 
   return (
     <div style={styles.pageWrapper}>
-      {/* 1. Large Fluid Hero Image Segment */}
+      {/* Hero Image Layout */}
+      <div style={styles.heroContainer}>
+        <img 
+          src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=cover" 
+          alt="Amazon Hero Banner" 
+          style={styles.heroImage}
+        />
+        <div style={styles.heroGradient}></div>
+      </div>
 
-<div style={styles.heroContainer}>
-  <img 
-    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=cover" 
-    alt="Amazon Hero Banner" 
-    style={styles.heroImage}
-  />
-  <div style={styles.heroGradient}></div>
-</div>
-
-      {/* 2. Overlapping Fluid Content Layer */}
+      {/* Grid Content Container */}
       <div style={styles.contentLayer}>
         <div style={styles.gridContainer}>
           {products.map((product) => (
@@ -68,11 +75,24 @@ export default function Products() {
           ))}
         </div>
       </div>
+
+      {/* AMAZON-STYLE SNACKBAR NOTIFICATION CONTAINER */}
+      {snackbar.visible && (
+        <div style={styles.snackbar}>
+          <span style={styles.checkIcon}>✓</span>
+          <div style={styles.snackbarMessage}>
+            <strong style={{color: '#111'}}>Added to Cart</strong>
+            <span style={styles.snackbarSub}>{snackbar.productName}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
+// Merge these additions into your existing component style declaration map object block:
 const styles = {
+  // ... Keep all your previous styles completely unmodified here ...
   pageWrapper: {
     width: '100%',
     backgroundColor: '#eaeded',
@@ -102,7 +122,7 @@ const styles = {
   contentLayer: {
     position: 'relative',
     zIndex: 2,
-    marginTop: '-260px', /* Negative margin pulls the cards up over the image banner */
+    marginTop: '-260px',
     padding: '0 20px 40px 20px',
     width: '100%',
   },
@@ -115,7 +135,7 @@ const styles = {
   amazonCard: {
     backgroundColor: '#ffffff',
     padding: '20px',
-    borderRadius: '0px', /* Clean flat edges just like the official site */
+    borderRadius: '0px',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
@@ -177,6 +197,42 @@ const styles = {
     fontSize: '13px',
     fontWeight: '500',
     boxShadow: '0 2px 5px rgba(213,217,217,.5)',
-    marginTop: 'auto', /* Keeps all actions aligned along the card baseline */
+    marginTop: 'auto',
+  },
+
+  // NEW SNACKBAR STYLES BELOW
+  snackbar: {
+    position: 'fixed',
+    bottom: '30px',
+    left: '30px',
+    backgroundColor: '#ffffff',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    borderLeft: '6px solid #007600', // Amazon eco-green indicator tag accent edge
+    borderRadius: '4px',
+    padding: '14px 20px',
+    display: 'flex',
+    alignItems: 'center',
+    zIndex: 9999,
+    fontFamily: 'Arial, sans-serif',
+    animation: 'slideIn 0.3s ease-out',
+  },
+  checkIcon: {
+    color: '#007600',
+    fontSize: '18px',
+    fontWeight: 'bold',
+    marginRight: '12px',
+  },
+  snackbarMessage: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  snackbarSub: {
+    color: '#565959',
+    fontSize: '13px',
+    maxWidth: '220px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   }
 };
