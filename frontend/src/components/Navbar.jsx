@@ -1,25 +1,62 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext'; // 1. Import the hook
+import { useCart } from '../context/CartContext'; 
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { cartCount } = useCart(); // 2. Pull the live global counter
+  const { cartCount } = useCart(); 
   const navigate = useNavigate();
 
   return (
     <nav style={styles.navbar}>
-      <span onClick={() => navigate('/products')} style={styles.logo}>
-        AmazonClone<span style={{ color: '#febd69' }}>.ae</span>
-      </span>
+      {/* LEFT: LOGO (Now safely routes directly to clean root domain) */}
+      <div onClick={() => navigate('/')} style={styles.logoContainer}>
+        <span style={styles.logo}>
+          AmazonClone<span style={{ color: '#febd69' }}>.ae</span>
+        </span>
+      </div>
       
+      {/* RIGHT NAVIGATION GROUP */}
       <div style={styles.rightNav}>
-        <span onClick={() => navigate('/products')} style={styles.navLink}>Return to Products</span>
+        {/* Explicitly labeled route target is preserved here */}
+        <span onClick={() => navigate('/products')} style={styles.navLink}>
+          Products
+        </span>
+
+        {/* CONDITIONAL ADMIN CONSOLE LINK FOR PRIVILEGED ROLES */}
+        {(user?.role === 'admin' || user?.role === 'employee') && (
+          <span 
+            onClick={() => navigate('/admin')} 
+            style={{ ...styles.navLink, color: '#febd69' }}
+          >
+            Admin Console
+          </span>
+        )}
         
-        {/* Amazon-style Cart Layout */}
+        {/* CENTER-RIGHT: AMAZON ACCOUNT & LISTS TWO-LINE BUTTON */}
+        <div 
+          onClick={() => navigate(user ? '/profile' : '/login')} 
+          style={styles.accountDropdownTrigger}
+        >
+          <span style={styles.line1}>
+            Hello, {user ? (user.name.length > 12 ? `${user.name.slice(0, 10)}...` : user.name) : 'sign in'}
+          </span>
+          <span style={styles.line2}>
+            Account & Lists
+          </span>
+        </div>
+
+        {/* LOGOUT INTERACTIVE TRIGGER (Show only if authenticated) */}
+        {user && (
+          <div onClick={logout} style={styles.logoutWrapper}>
+            <span style={styles.line1}>Sign out of</span>
+            <span style={styles.line2TextLink}>Session</span>
+          </div>
+        )}
+
+        {/* RIGHT: CART BADGE LAYOUT */}
         <div onClick={() => navigate('/cart')} style={styles.cartContainer}>
           <div style={styles.iconWrapper}>
-            {/* The Badge sits cleanly on top of the cart layout */}
             <span style={styles.cartBadge}>{cartCount}</span>
             <svg style={styles.cartIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="9" cy="21" r="1"></circle>
@@ -29,15 +66,6 @@ export default function Navbar() {
           </div>
           <span style={styles.cartText}>Cart</span>
         </div>
-
-        {user ? (
-          <div style={styles.authGroup}>
-            <span style={styles.userGreeting}>Hello, {user.name || 'User'}</span>
-            <button onClick={logout} style={styles.logoutBtn}>Logout</button>
-          </div>
-        ) : (
-          <button onClick={() => navigate('/login')} style={styles.loginBtn}>Sign In</button>
-        )}
       </div>
     </nav>
   );
@@ -46,57 +74,109 @@ export default function Navbar() {
 const styles = {
   navbar: {
     height: '60px',
-    backgroundColor: '#131921', // Dark Amazon Theme color
+    backgroundColor: '#131921', 
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '0 20px',
     fontFamily: 'Arial, sans-serif',
+    userSelect: 'none'
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer',
+    padding: '5px 8px',
+    border: '1px solid transparent',
+    borderRadius: '2px',
+    transition: 'border 0.1s',
+    ':hover': { border: '1px solid #fff' } 
   },
   logo: {
     color: '#ffffff',
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: '700',
-    cursor: 'pointer',
+    letterSpacing: '-0.5px'
   },
   rightNav: {
     display: 'flex',
     alignItems: 'center',
-    gap: '20px',
+    gap: '4px',
   },
   navLink: {
     color: '#ffffff',
     fontSize: '14px',
+    fontWeight: '700',
     cursor: 'pointer',
+    padding: '10px 12px',
+    border: '1px solid transparent',
+    borderRadius: '2px',
+  },
+  accountDropdownTrigger: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: '6px 12px',
+    border: '1px solid transparent',
+    borderRadius: '2px',
+    color: '#ffffff'
+  },
+  logoutWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    padding: '6px 12px',
+    border: '1px solid transparent',
+    borderRadius: '2px',
+    color: '#ffffff'
+  },
+  line1: {
+    fontSize: '12px',
+    color: '#cccccc',
+    fontWeight: '400',
+    lineHeight: '14px'
+  },
+  line2: {
+    fontSize: '14px',
+    fontWeight: '700',
+    lineHeight: '15px',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  line2TextLink: {
+    fontSize: '14px',
+    fontWeight: '700',
+    lineHeight: '15px',
+    color: '#febd69'
   },
   cartContainer: {
     display: 'flex',
     alignItems: 'flex-end',
     cursor: 'pointer',
-    position: 'relative',
-    padding: '5px',
+    padding: '6px 12px',
+    border: '1px solid transparent',
+    borderRadius: '2px',
+    color: '#ffffff'
   },
   iconWrapper: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   cartIcon: {
-    width: '26px',
-    height: '26px',
+    width: '28px',
+    height: '28px',
     stroke: '#ffffff',
   },
   cartBadge: {
     position: 'absolute',
-    top: '-8px',
-    left: '10px',
-    backgroundColor: '#131921',
-    color: '#f08804', // Distinct Amazon Orange notification badge color
+    top: '-6px',
+    left: '12px',
+    color: '#f08804', 
     fontSize: '16px',
     fontWeight: '700',
-    borderRadius: '50%',
-    padding: '0 4px',
     minWidth: '16px',
     textAlign: 'center',
   },
@@ -105,30 +185,5 @@ const styles = {
     fontSize: '14px',
     fontWeight: '700',
     marginLeft: '2px',
-  },
-  authGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  userGreeting: {
-    color: '#ccc',
-    fontSize: '12px',
-  },
-  logoutBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#ffffff',
-    fontWeight: '700',
-    cursor: 'pointer',
-    padding: 0,
-    fontSize: '14px',
-  },
-  loginBtn: {
-    backgroundColor: '#ffd814',
-    border: '1px solid #fcd200',
-    padding: '6px 12px',
-    borderRadius: '8px',
-    cursor: 'pointer',
   }
 };

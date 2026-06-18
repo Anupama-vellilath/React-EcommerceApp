@@ -68,9 +68,16 @@ export default function Products() {
               
               <p style={styles.descText}>{product.description}</p>
 
-              <button onClick={() => handleAddToCart(product)} style={styles.actionBtn}>
-                Add to Cart
-              </button>
+              {/* 👇 ROLE CONDITION SHIELD: Restricts commerce functions to buyers only */}
+              {user?.role !== 'admin' && user?.role !== 'employee' ? (
+                <button onClick={() => handleAddToCart(product)} style={styles.actionBtn}>
+                  Add to Cart
+                </button>
+              ) : (
+                <div style={styles.adminBadge}>
+                  Staff View Only
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -90,9 +97,7 @@ export default function Products() {
   );
 }
 
-// Merge these additions into your existing component style declaration map object block:
 const styles = {
-  // ... Keep all your previous styles completely unmodified here ...
   pageWrapper: {
     width: '100%',
     backgroundColor: '#eaeded',
@@ -199,15 +204,26 @@ const styles = {
     boxShadow: '0 2px 5px rgba(213,217,217,.5)',
     marginTop: 'auto',
   },
-
-  // NEW SNACKBAR STYLES BELOW
+  // 🛠️ Subdued badge styling for administration views
+  adminBadge: {
+    display: 'block',
+    textAlign: 'center',
+    padding: '8px 0',
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#767676',
+    backgroundColor: '#f7f8fa',
+    border: '1px dashed #adb1b8',
+    borderRadius: '3px',
+    marginTop: 'auto',
+  },
   snackbar: {
     position: 'fixed',
     bottom: '30px',
     left: '30px',
     backgroundColor: '#ffffff',
     boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    borderLeft: '6px solid #007600', // Amazon eco-green indicator tag accent edge
+    borderLeft: '6px solid #007600', 
     borderRadius: '4px',
     padding: '14px 20px',
     display: 'flex',
