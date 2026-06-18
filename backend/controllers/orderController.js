@@ -26,3 +26,49 @@ exports.saveOrder = async (req, res) => {
   });
   res.status(201).json(order);
 };
+
+// 👇 ADD THESE TWO NEW HANDLERS FOR ADMIN & STAFF ACTIONS
+
+// @desc    Get all orders across the entire platform
+// @route   GET /api/orders
+// @access  Private (Admin & Employee)
+exports.getAllOrders = async (req, res) => {
+  try {
+    // Populate the user reference field with name and email data fields
+    const orders = await Order.find({})
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
+      
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Server failed to retrieve global order list', 
+      error: error.message 
+    });
+  }
+};
+
+// @desc    Update order tracking status milestones
+// @route   PUT /api/orders/:id/status
+// @access  Private (Admin & Employee)
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body; // e.g., 'packed', 'shipped', 'delivered'
+    
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order snapshot reference not found' });
+    }
+
+    order.status = status;
+    const updatedOrder = await order.save();
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    res.status(400).json({ 
+      message: 'Failed to rewrite target order tracking status', 
+      error: error.message 
+    });
+  }
+};

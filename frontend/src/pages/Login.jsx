@@ -11,7 +11,6 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Replace this dummy fetch with your actual API endpoint if different
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -20,8 +19,15 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        login(data); // Save user & token to context
-        navigate('/products');
+        login(data); // Save user (including role) & token to context
+        
+        // 👇 SMART ROLE-BASED REDIRECTION
+        if (data.role === 'admin' || data.role === 'employee') {
+          navigate('/admin'); // Send staff straight to the dashboard workspace
+        } else {
+          navigate('/products'); // Send regular customers to the storefront
+        }
+        
       } else {
         alert(data.message || 'Login failed');
       }
@@ -129,7 +135,7 @@ const styles = {
     transition: 'border-color 0.1s linear',
   },
   signInButton: {
-    backgroundColor: '#fffd2f4',
+    backgroundColor: '#fffdf2f4',
     background: 'linear-gradient(to bottom, #f7dfa5, #f0c14b)',
     borderColor: '#a88734 #9c7e31 #846a29',
     borderStyle: 'solid',

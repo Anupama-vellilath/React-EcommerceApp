@@ -1,10 +1,17 @@
 const router = require('express').Router();
-const Product = require('../models/Product');
+const { protect, isAdmin, isStaff } = require('../middleware/auth');
 
-router.get('/', async (req, res) => {
-  const products = await Product.find();
-  res.json(products);
-});
+// 👇 Import your new controller handlers
+const { 
+  getAllProducts, 
+  createProduct, 
+  updateProduct, 
+  deleteProduct 
+} = require('../controllers/productController');
 
+router.get('/', getAllProducts);
+router.post('/', protect, isStaff, createProduct);
+router.put('/:id', protect, isStaff, updateProduct);
+router.delete('/:id', protect, isAdmin, deleteProduct);
 
 module.exports = router;
